@@ -1,0 +1,390 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-application",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6952fbe4-d4a2-45fb-ac53-e193b6a57a02",
+      "name": "Webhook",
+      "webhookId": "c8e7014c-9ae8-47ed-aee7-4d4877aeec45"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "resume",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "b80cab4d-0de9-4b02-a0df-a96d47074ea2",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR API KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are an expert ATS Resume Analyzer for HR teams. Analyze the resume below for a Python Developer role. Return ONLY valid JSON without markdown, explanations, or backticks. Use exactly this structure: {\\\"candidateName\\\":\\\"\\\",\\\"atsScore\\\":0,\\\"recommendation\\\":\\\"\\\",\\\"topSkills\\\":[\\\"\\\"],\\\"missingSkills\\\":[\\\"\\\"],\\\"strengths\\\":[\\\"\\\"],\\\"weaknesses\\\":[\\\"\\\"],\\\"summary\\\":\\\"\\\"}. Extract the candidate's name from the resume. Set atsScore between 0 and 100. Recommendation must be one of Hire, Maybe, or Reject. Resume: {{ JSON.stringify($json.text).slice(1,-1) }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "1b693134-168b-4fd0-b4ea-19a872185cd5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b35c150-4411-42c7-a09a-eefeaea10d86",
+              "name": "analysis",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "e5ec554f-a35f-42e8-bd1b-54e30fedc941",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1pajklHb4naD55jSfUrF_cbaYLOE3lcObhMLlAoaesLI",
+          "mode": "list",
+          "cachedResultName": "AI Resume Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pajklHb4naD55jSfUrF_cbaYLOE3lcObhMLlAoaesLI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pajklHb4naD55jSfUrF_cbaYLOE3lcObhMLlAoaesLI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Candidate": "={{ $json.Candidate }}",
+            "ATS Score": "={{ $json[\"ATS Score\"] }}",
+            "Recommendation": "={{ $json.Recommendation }}",
+            "Status": "={{\n$json.atsScore >= 80\n? \"Shortlisted\"\n: $json.atsScore >= 60\n? \"Review\"\n: \"Rejected\"\n}}",
+            "Top Skills": "={{ $json[\"Top Skills\"] }}",
+            "Missing Skills": "={{ $json[\"Missing Skills\"] }}"
+          },
+          "matchingColumns": [
+            "Candidate"
+          ],
+          "schema": [
+            {
+              "id": "Candidate",
+              "displayName": "Candidate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ATS Score",
+              "displayName": "ATS Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recommendation",
+              "displayName": "Recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Top Skills",
+              "displayName": "Top Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1056,
+        192
+      ],
+      "id": "887f236f-f40b-4f12-87cc-69b7723be8c2",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "[REDACTED]",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"analysis\": $json.analysis } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1296,
+        0
+      ],
+      "id": "020f7794-3dfc-43c5-ab41-ded0da107838",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cef68a09-bdaa-4503-908f-0b0571b9f7a6",
+              "name": "Candidate",
+              "value": "={{ JSON.parse($json.choices[0].message.content).candidateName }}",
+              "type": "string"
+            },
+            {
+              "id": "b84b2a09-ab87-4b9e-888b-73d33dc0978d",
+              "name": "ATS Score",
+              "value": "={{ JSON.parse($json.choices[0].message.content).atsScore }}",
+              "type": "string"
+            },
+            {
+              "id": "5501b1c2-9429-4715-b56d-5dba97f3ef6f",
+              "name": "Recommendation",
+              "value": "={{ JSON.parse($json.choices[0].message.content).recommendation }}",
+              "type": "string"
+            },
+            {
+              "id": "af21d26a-28cc-4eee-952a-693565d72ca2",
+              "name": "Status",
+              "value": "={{   JSON.parse($json.choices[0].message.content).atsScore >= 80     ? \"Shortlisted\"     : JSON.parse($json.choices[0].message.content).atsScore >= 60     ? \"Review\"     : \"Rejected\" }}",
+              "type": "string"
+            },
+            {
+              "id": "c3e72ae7-c916-4400-ae4a-d72e7116d736",
+              "name": "Top Skills",
+              "value": "={{ JSON.parse($json.choices[0].message.content).topSkills.join(\", \") }}",
+              "type": "string"
+            },
+            {
+              "id": "cf9e6088-0177-4b62-8328-688471eb39c7",
+              "name": "Missing Skills",
+              "value": "={{ JSON.parse($json.choices[0].message.content).missingSkills.join(\", \") }}",
+              "type": "string"
+            },
+            {
+              "id": "010e9a7c-c31a-403f-8a7d-7bb23df5d1ae",
+              "name": "Summary",
+              "value": "={{ JSON.parse($json.choices[0].message.content).summary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        0
+      ],
+      "id": "552c8bb7-8aa8-4e40-b9b9-9377187ebd15",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        192
+      ],
+      "id": "ffffcb4b-e57f-4d66-b4cc-d6163b6df37f",
+      "name": "Send a message",
+      "webhookId": "5f795346-88c0-4362-8d17-56895b0ab5c7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR REAL ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0fd70ef3-40dc-420a-b18d-9404f696bb5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1261a0596ee80c2c61fb6a01c8c147ac590db865b9906679f512b8ab34b0256f"
+  },
+  "nodeGroups": [],
+  "id": "lhzdl9JsiFxS0hSH",
+  "tags": []
+}
