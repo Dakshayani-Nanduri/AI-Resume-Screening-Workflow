@@ -19,3 +19,21 @@ Technologies Used
 - Groq for AI-powered resume analysis
 - Google Sheets for storing candidate evaluation results
 - Webhooks for receiving resume data and returning the workflow response
+
+Project Structure
+
+Project Structure
+
+AI-Resume-Screening-Workflow/
+│
+├── AI_Resume_Screening_Workflow.json
+├── workflow.png
+└── README.md
+
+File Description
+
+- "AI_Resume_Screening_Workflow.json" - n8n workflow that contains the complete automation logic.
+- "workflow.png" - Screenshot of the n8n workflow.
+- "README.md" - Project documentation, setup instructions, workflow description, and usage information.
+
+
